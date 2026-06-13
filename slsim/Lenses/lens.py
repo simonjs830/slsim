@@ -44,6 +44,7 @@ class Lens(LensedSystemBase):
         shear=True,
         convergence=True,
         field_galaxies=None,
+        create_field_galaxies=False,
     ):
         """
 
@@ -76,8 +77,17 @@ class Lens(LensedSystemBase):
             Instances should be generated via :meth:`slsim.Sources.SourcePopulation.Galaxies.draw_field_galaxies`.
             If None, no field galaxies are included.
         :type field_galaxies: list[`slsim.Sources.source.Source`] or None
-
+        :param create_field_galaxies: If True, make all source galaxies in front of `deflector_class.redshift` into field galaxies
+        :type create_field_galaxies: bool
         """
+
+        if create_field_galaxies and isinstance(source_class, list):
+            if field_galaxies is None:
+                field_galaxies = []
+
+            field_galaxies += [s for s in source_class if s.redshift < deflector_class.redshift]
+            source_class = [s for s in source_class if s.redshift > deflector_class.redshift]
+        
         LensedSystemBase.__init__(
             self,
             source_class=source_class,
@@ -195,7 +205,8 @@ class Lens(LensedSystemBase):
             list], [DEC list]
         """
         lens_model_class, kwargs_lens = self.deflector_mass_model_lenstronomy(
-            source_index=source_index
+            source_index=source_index,
+            multi_plane=self.multi_plane in ["Deflector", "Both"] #unnecessary for source, makes calculations much faster
         )
         lens_eq_solver = LensEquationSolver(lens_model_class)
         point_source_pos_x, point_source_pos_y = x_source, y_source
@@ -1420,7 +1431,7 @@ class Lens(LensedSystemBase):
 
         return kwargs_model, kwargs_params
 
-    def deflector_mass_model_lenstronomy(self, source_index=None):
+    def deflector_mass_model_lenstronomy(self, source_index=None, multi_plane=None):
         """Returns lens model instance and parameters in lenstronomy
         conventions.
 
@@ -1503,7 +1514,7 @@ class Lens(LensedSystemBase):
             z_source=z_source,
             z_source_convention=self.max_redshift_source_class.redshift,
             use_jax=use_jax,
-            multi_plane=bool(self.multi_plane),
+            multi_plane=bool(self.multi_plane) if multi_plane is None else multi_plane
         )
 
         return lens_model, self._kwargs_lens
