@@ -85,9 +85,13 @@ class Lens(LensedSystemBase):
             if field_galaxies is None:
                 field_galaxies = []
 
-            field_galaxies += [s for s in source_class if s.redshift < deflector_class.redshift]
-            source_class = [s for s in source_class if s.redshift > deflector_class.redshift]
-        
+            field_galaxies += [
+                s for s in source_class if s.redshift < deflector_class.redshift
+            ]
+            source_class = [
+                s for s in source_class if s.redshift > deflector_class.redshift
+            ]
+
         LensedSystemBase.__init__(
             self,
             source_class=source_class,
@@ -206,7 +210,11 @@ class Lens(LensedSystemBase):
         """
         lens_model_class, kwargs_lens = self.deflector_mass_model_lenstronomy(
             source_index=source_index,
-            multi_plane=self.multi_plane in ["Deflector", "Both"] #unnecessary for source, makes calculations much faster
+            multi_plane=self.multi_plane
+            in [
+                "Deflector",
+                "Both",
+            ],  # unnecessary for source, makes calculations much faster
         )
         lens_eq_solver = LensEquationSolver(lens_model_class)
         point_source_pos_x, point_source_pos_y = x_source, y_source
@@ -1514,7 +1522,7 @@ class Lens(LensedSystemBase):
             z_source=z_source,
             z_source_convention=self.max_redshift_source_class.redshift,
             use_jax=use_jax,
-            multi_plane=bool(self.multi_plane) if multi_plane is None else multi_plane
+            multi_plane=bool(self.multi_plane) if multi_plane is None else multi_plane,
         )
 
         return lens_model, self._kwargs_lens

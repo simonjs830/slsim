@@ -12,6 +12,7 @@ from lenstronomy.LensModel.lens_model_extensions import LensModelExtensions
 
 from tqdm import tqdm
 
+
 class LensPop(LensedPopulationBase):
     """Class to perform samples of lens population."""
 
@@ -107,8 +108,16 @@ class LensPop(LensedPopulationBase):
                 return gg_lens
             n += 1
 
-    def select_lens_at_random_multi_source(self, sky_area, verbose=False, min_num_sources=1, return_only_multiply_imaged_sources=False, **kwargs_lens_cut):
-        """Draw a random lens with an entire source field, with at least min_num_sources satisfying kwargs_lens_cut
+    def select_lens_at_random_multi_source(
+        self,
+        sky_area,
+        verbose=False,
+        min_num_sources=1,
+        return_only_multiply_imaged_sources=False,
+        **kwargs_lens_cut
+    ):
+        """Draw a random lens with an entire source field, with at least
+        min_num_sources satisfying kwargs_lens_cut.
 
         :param sky_area: Sky area to draw sources from
         :type sky_area: (astropy.units.Quantity)
@@ -129,10 +138,10 @@ class LensPop(LensedPopulationBase):
         :return: Lens() instance with parameters of the deflector and lens and source field.
         :rtype: Lens
         """
-        
+
         n = 0
         while True:
-            #draw random deflector
+            # draw random deflector
             _deflector = self._lens_galaxies.draw_deflector()
 
             ### compute caustics to filter source galaxies for validity checking
@@ -142,14 +151,16 @@ class LensPop(LensedPopulationBase):
                 cosmo=self.cosmo,
                 use_jax=self._use_jax,
             )
-            lens_model_object, model_params = _dummy_lens.deflector_mass_model_lenstronomy(multi_plane=False) #makes computation faster
+            lens_model_object, model_params = (
+                _dummy_lens.deflector_mass_model_lenstronomy(multi_plane=False)
+            )  # makes computation faster
             lens_model_ext = LensModelExtensions(lens_model_object)
-            (_, _, ra_caustic_list, dec_caustic_list) = lens_model_ext.critical_curve_caustics(
-                model_params,
-
-                compute_window = np.sqrt(sky_area.to_value("arcsec2") / np.pi) * 2,
-
-                grid_scale=2.0, #TODO experiment with grid_scale
+            _, _, ra_caustic_list, dec_caustic_list = (
+                lens_model_ext.critical_curve_caustics(
+                    model_params,
+                    compute_window=np.sqrt(sky_area.to_value("arcsec2") / np.pi) * 2,
+                    grid_scale=2.0,  # TODO experiment with grid_scale
+                )
             )
 
             if len(ra_caustic_list) == 0:
@@ -160,21 +171,28 @@ class LensPop(LensedPopulationBase):
 
             # check only sources within 5 arcsecs of a caustic curve. TODO compute if source is inside curve
             _source = self._sources.draw_galaxies(sky_area)
-            _source_cut = [s for s in _source if s.redshift > _deflector.redshift and np.min(
-                            (ra_caustic_list - s.extended_source_position[0]) ** 2 +
-                            (dec_caustic_list - s.extended_source_position[1]) ** 2
-                        ) < 5 ** 2]
-            
+            _source_cut = [
+                s
+                for s in _source
+                if s.redshift > _deflector.redshift
+                and np.min(
+                    (ra_caustic_list - s.extended_source_position[0]) ** 2
+                    + (dec_caustic_list - s.extended_source_position[1]) ** 2
+                )
+                < 5**2
+            ]
+
             if len(_source_cut) < min_num_sources:
                 continue
-            
-            #lens only with sources near caustics to speed up validity checking
+
+            # lens only with sources near caustics to speed up validity checking
             test_lens = Lens(
                 deflector_class=_deflector,
                 source_class=_source_cut,
                 cosmo=self.cosmo,
                 use_jax=self._use_jax,
-                multi_plane="Source", create_field_galaxies=True
+                multi_plane="Source",
+                create_field_galaxies=True,
             )
 
             test_res = test_lens.validity_test(**kwargs_lens_cut)
@@ -186,24 +204,28 @@ class LensPop(LensedPopulationBase):
                     print("selected lens after %s tries." % n)
 
                 if not return_only_multiply_imaged_sources:
-                    #final lens with all sources
+                    # final lens with all sources
                     return Lens(
                         deflector_class=_deflector,
                         source_class=_source,
                         cosmo=self.cosmo,
                         use_jax=self._use_jax,
                         multi_plane="Source",
-                        create_field_galaxies=True
+                        create_field_galaxies=True,
                     )
                 else:
-                    #only sources that are multiply imaged
+                    # only sources that are multiply imaged
                     return Lens(
                         deflector_class=_deflector,
-                        source_class=[_source_cut[i] for i in range(len(_source_cut)) if test_res[i]],
+                        source_class=[
+                            _source_cut[i]
+                            for i in range(len(_source_cut))
+                            if test_res[i]
+                        ],
                         cosmo=self.cosmo,
                         use_jax=self._use_jax,
                         multi_plane="Source",
-                        create_field_galaxies=True
+                        create_field_galaxies=True,
                     )
 
             n += 1
