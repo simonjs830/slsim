@@ -225,6 +225,61 @@ def test_cluster_lens_pop_instance():
     assert len(kwargs_model["lens_light_model_list"]) >= 1  # 1>= member galaxy
     assert pes_lens_class.deflector_velocity_dispersion() > 250
 
+def test_cluster_lens_pop_instance_multi_source():
+    np.random.seed(41)
+    cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
+    sky_area = Quantity(value=100**2, unit="arcsec2")
+
+    kwargs_deflector_cut = {"z_min": 0.2, "z_max": 1.0}
+    kwargs_source_cut = {"band": "g", "band_max": 28, "z_min": 0.25, "z_max": 5.0}
+
+    path = os.path.dirname(__file__)
+    module_path = os.path.dirname(os.path.dirname(path))
+    cluster_catalog_path = os.path.join(
+        module_path, "data/redMaPPer/clusters_example.fits"
+    )
+    members_catalog_path = os.path.join(
+        module_path, "data/redMaPPer/members_example.fits"
+    )
+    cluster_catalog = Table.read(cluster_catalog_path)
+    members_catalog = Table.read(members_catalog_path)
+
+    lens_clusters = deflectors.ClusterDeflectors(
+        cluster_list=cluster_catalog,
+        members_list=members_catalog,
+        galaxy_list=galaxy_simulation_pipeline.all_galaxies,
+        kwargs_cut=kwargs_deflector_cut,
+        kwargs_mass2light={},
+        cosmo=cosmo,
+        sky_area=sky_area,
+        kwargs_draw_members={"max_dist": 350},
+    )
+
+    source_galaxies = sources.Galaxies(
+        galaxy_list=galaxy_simulation_pipeline.all_galaxies,
+        kwargs_cut=kwargs_source_cut,
+        cosmo=cosmo,
+        sky_area=sky_area,
+        catalog_type="skypy",
+    )
+
+    cluster_lens_pop = LensPop(
+        deflector_population=lens_clusters,
+        source_population=source_galaxies,
+        cosmo=cosmo,
+        sky_area=sky_area,
+        use_jax=use_jax,
+    )
+
+    kwargs_lens_cut = {"min_image_separation": 1.0, "max_image_separation": 100.0}
+    pes_lens_class = cluster_lens_pop.select_lens_at_random_multi_source(
+        sky_area=sky_area, min_num_sources=2, **kwargs_lens_cut
+    )
+    assert pes_lens_class.deflector.deflector_type == "NFW_CLUSTER"
+    kwargs_model, kwargs_params = pes_lens_class.lenstronomy_kwargs(band="g")
+    assert len(kwargs_model["lens_model_list"]) >= 3  # halo, 1>= subhalo, LoS
+    assert len(kwargs_model["lens_light_model_list"]) >= 1  # 1>= member galaxy
+    assert pes_lens_class.deflector_velocity_dispersion() > 250
 
 def test_galaxies_lens_pop_instance():
     cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
