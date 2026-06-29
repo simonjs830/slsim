@@ -273,7 +273,7 @@ def test_cluster_lens_pop_instance_multi_source():
 
     kwargs_lens_cut = {"min_image_separation": 1.0, "max_image_separation": 100.0}
     pes_lens_class = cluster_lens_pop.select_lens_at_random_multi_source(
-        sky_area=sky_area, min_num_sources=2, **kwargs_lens_cut
+        source_area=sky_area, min_num_sources=2, **kwargs_lens_cut
     )
     assert pes_lens_class.deflector.deflector_type == "NFW_CLUSTER"
     kwargs_model, kwargs_params = pes_lens_class.lenstronomy_kwargs(band="g")
