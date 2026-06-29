@@ -225,6 +225,7 @@ def test_cluster_lens_pop_instance():
     assert len(kwargs_model["lens_light_model_list"]) >= 1  # 1>= member galaxy
     assert pes_lens_class.deflector_velocity_dispersion() > 250
 
+
 def test_cluster_lens_pop_instance_multi_source():
     np.random.seed(41)
     cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
@@ -280,6 +281,7 @@ def test_cluster_lens_pop_instance_multi_source():
     assert len(kwargs_model["lens_model_list"]) >= 3  # halo, 1>= subhalo, LoS
     assert len(kwargs_model["lens_light_model_list"]) >= 1  # 1>= member galaxy
     assert pes_lens_class.deflector_velocity_dispersion() > 250
+
 
 def test_galaxies_lens_pop_instance():
     cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
