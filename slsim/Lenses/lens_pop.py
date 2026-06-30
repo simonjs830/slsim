@@ -13,6 +13,7 @@ from matplotlib.path import Path
 
 from tqdm import tqdm
 
+
 class LensPop(LensedPopulationBase):
     """Class to perform samples of lens population."""
 
@@ -153,7 +154,7 @@ class LensPop(LensedPopulationBase):
         
         n = 0
         while True:
-            #draw random deflector
+            # draw random deflector
             _deflector = self._lens_galaxies.draw_deflector()
 
             ### compute caustics at high redshift to filter source galaxies for validity checking
@@ -171,14 +172,15 @@ class LensPop(LensedPopulationBase):
             
             if len(_source_cut) < min_num_sources:
                 continue
-            
-            #lens only with sources near caustics to speed up validity checking
+
+            # lens only with sources near caustics to speed up validity checking
             test_lens = Lens(
                 deflector_class=_deflector,
                 source_class=_source_cut,
                 cosmo=self.cosmo,
                 use_jax=self._use_jax,
-                multi_plane="Source", create_field_galaxies=True
+                multi_plane="Source",
+                create_field_galaxies=True,
             )
 
             test_res = test_lens.validity_test(**kwargs_lens_cut)
@@ -190,24 +192,28 @@ class LensPop(LensedPopulationBase):
                     print("selected lens after %s tries." % n)
 
                 if not return_only_multiply_imaged_sources:
-                    #final lens with all sources
+                    # final lens with all sources
                     return Lens(
                         deflector_class=_deflector,
                         source_class=_source,
                         cosmo=self.cosmo,
                         use_jax=self._use_jax,
                         multi_plane="Source",
-                        create_field_galaxies=True
+                        create_field_galaxies=True,
                     )
                 else:
-                    #only sources that are multiply imaged
+                    # only sources that are multiply imaged
                     return Lens(
                         deflector_class=_deflector,
-                        source_class=[_source_cut[i] for i in range(len(_source_cut)) if test_res[i]],
+                        source_class=[
+                            _source_cut[i]
+                            for i in range(len(_source_cut))
+                            if test_res[i]
+                        ],
                         cosmo=self.cosmo,
                         use_jax=self._use_jax,
                         multi_plane="Source",
-                        create_field_galaxies=True
+                        create_field_galaxies=True,
                     )
 
             n += 1

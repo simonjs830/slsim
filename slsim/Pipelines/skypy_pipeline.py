@@ -4,6 +4,7 @@ import tempfile
 import slsim.Util.param_util as util
 from astropy.table import vstack
 
+
 class SkyPyPipeline:
     """Class for skypy configuration."""
 
@@ -111,7 +112,7 @@ class SkyPyPipeline:
         :rtype: list of dict
         """
         return self._pipeline["red"]
-    
+
     @property
     def all_galaxies(self):
         """Skypy pipeline for red and blue galaxies.
