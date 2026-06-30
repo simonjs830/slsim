@@ -109,8 +109,17 @@ class LensPop(LensedPopulationBase):
                 return gg_lens
             n += 1
 
-    def select_lens_at_random_multi_source(self, source_area, verbose=False, min_num_sources=1, return_only_multiply_imaged_sources=False, **kwargs_lens_cut):
-        """Draw a random lens with an entire source field spanning `source_area`, with at least min_num_sources satisfying kwargs_lens_cut
+    def select_lens_at_random_multi_source(
+        self,
+        source_area,
+        verbose=False,
+        min_num_sources=1,
+        return_only_multiply_imaged_sources=False,
+        **kwargs_lens_cut
+    ):
+        """Draw a random lens with an entire source field spanning
+        `source_area`, with at least min_num_sources satisfying
+        kwargs_lens_cut.
 
         :param sky_area: Sky area to draw sources from
         :type sky_area: (astropy.units.Quantity)
@@ -135,7 +144,7 @@ class LensPop(LensedPopulationBase):
         # utility function - returns True if point is inside one of the paths in the ra and dec lists, or within 3 arcseconds outside. Used to cut sources for image checking.
         def _in_caustic_or_close_outside(ra_caustic_list, dec_caustic_list, s):
             point = s.extended_source_position
-            
+
             for ra, dec in zip(ra_caustic_list, dec_caustic_list):
                 curve_path = Path(np.column_stack((ra, dec)))
 
@@ -145,31 +154,42 @@ class LensPop(LensedPopulationBase):
 
                 if curve_path.contains_point(point):
                     return True
-                        
-                if np.min(
-                    (ra - point[0]) ** 2 +
-                    (dec - point[1]) ** 2
-                ) < 3 ** 2:
+
+                if np.min((ra - point[0]) ** 2 + (dec - point[1]) ** 2) < 3**2:
                     return True
-        
+
         n = 0
         while True:
             # draw random deflector
             _deflector = self._lens_galaxies.draw_deflector()
 
             ### compute caustics at high redshift to filter source galaxies for validity checking
-            (_, _, ra_caustic_list, dec_caustic_list) = _deflector.critical_curves_caustics_list(10, self.cosmo, {
-                "compute_window": np.sqrt(source_area.to_value("arcsec2") / np.pi) * 2,
-                "grid_scale": 0.5
-            })
+            _, _, ra_caustic_list, dec_caustic_list = (
+                _deflector.critical_curves_caustics_list(
+                    10,
+                    self.cosmo,
+                    {
+                        "compute_window": np.sqrt(
+                            source_area.to_value("arcsec2") / np.pi
+                        )
+                        * 2,
+                        "grid_scale": 0.5,
+                    },
+                )
+            )
 
             if len(ra_caustic_list) == 0:
                 continue
 
             # draw all sources, and filter onces near caustics for validity checking
             _source = self._sources.draw_galaxies(source_area)
-            _source_cut = [s for s in _source if s.redshift > _deflector.redshift and _in_caustic_or_close_outside(ra_caustic_list, dec_caustic_list, s)]
-            
+            _source_cut = [
+                s
+                for s in _source
+                if s.redshift > _deflector.redshift
+                and _in_caustic_or_close_outside(ra_caustic_list, dec_caustic_list, s)
+            ]
+
             if len(_source_cut) < min_num_sources:
                 continue
 

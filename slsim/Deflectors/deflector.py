@@ -290,8 +290,11 @@ class Deflector(object):
         self._theta_e_infinity = theta_E_infinity
         return theta_E_infinity
 
-    def critical_curves_caustics_list(self, z_source, cosmo, kwargs_critical_curve_caustics = None):
-        """Returns list of critical curves and caustics for a source at `z_source`
+    def critical_curves_caustics_list(
+        self, z_source, cosmo, kwargs_critical_curve_caustics=None
+    ):
+        """Returns list of critical curves and caustics for a source at
+        `z_source`
 
         :param z_source: redshift at which to compute curves
         :param cosmo: astropy.cosmology instance
@@ -316,15 +319,17 @@ class Deflector(object):
             cosmo=cosmo,
             z_lens=self.redshift,
             z_source=z_source,
-            multi_plane=False
+            multi_plane=False,
         )
 
         lens_model_ext = LensModelExtensions(lens_model)
-        (ra_crit_list, dec_crit_list, ra_caustic_list, dec_caustic_list) = lens_model_ext.critical_curve_caustics(
-            model_params,
-            **kwargs_critical_curve_caustics
-            #compute_window=160,
-            #grid_scale=0.5,
+        ra_crit_list, dec_crit_list, ra_caustic_list, dec_caustic_list = (
+            lens_model_ext.critical_curve_caustics(
+                model_params,
+                **kwargs_critical_curve_caustics
+                # compute_window=160,
+                # grid_scale=0.5,
+            )
         )
 
         return ra_crit_list, dec_crit_list, ra_caustic_list, dec_caustic_list
