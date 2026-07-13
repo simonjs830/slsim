@@ -327,8 +327,6 @@ class Deflector(object):
             lens_model_ext.critical_curve_caustics(
                 model_params,
                 **kwargs_critical_curve_caustics
-                # compute_window=160,
-                # grid_scale=0.5,
             )
         )
 
