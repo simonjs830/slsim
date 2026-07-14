@@ -325,8 +325,7 @@ class Deflector(object):
         lens_model_ext = LensModelExtensions(lens_model)
         ra_crit_list, dec_crit_list, ra_caustic_list, dec_caustic_list = (
             lens_model_ext.critical_curve_caustics(
-                model_params,
-                **kwargs_critical_curve_caustics
+                model_params, **kwargs_critical_curve_caustics
             )
         )
 
