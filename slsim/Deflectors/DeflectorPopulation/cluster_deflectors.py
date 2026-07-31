@@ -141,7 +141,8 @@ class ClusterDeflectors(DeflectorsBase):
         :type cored: True for cored, False for cuspy profile
         :return: dictionary of complete parameterization of deflector
         """
-        index = random.randint(0, self._num_select - 1)
+        if index is None:
+            index = random.randint(0, self._num_select - 1)
         deflector = self.draw_cluster(index)
         members = self.draw_members(deflector["cluster_id"], **self.kwargs_draw_members)
         deflector["subhalos"] = members
