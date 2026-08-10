@@ -10,7 +10,16 @@ from slsim.Deflectors.MassTypes.mass_base import MassBase
 class NFWHernquist(MassBase):
     """Class of a NFW+Hernquist lens model with a Hernquist light mode."""
 
-    def __init__(self, light, halo_mass, concentration, e1=0, e2=0, vel_disp=None, truncation_radius=None):
+    def __init__(
+        self,
+        light,
+        halo_mass,
+        concentration,
+        e1=0,
+        e2=0,
+        vel_disp=None,
+        truncation_radius=None,
+    ):
         """
 
         :param light: light model (used for position of deflector and stellar mass density profile)
@@ -26,7 +35,12 @@ class NFWHernquist(MassBase):
         """
         super().__init__(light=light, vel_disp=vel_disp)
         self._nfw = NFW(
-            light=light, halo_mass=halo_mass, concentration=concentration, e1=e1, e2=e2, truncation_radius=truncation_radius
+            light=light,
+            halo_mass=halo_mass,
+            concentration=concentration,
+            e1=e1,
+            e2=e2,
+            truncation_radius=truncation_radius,
         )
         self._hernquist = Hernquist(light=light)
         self.num_mass_models = 2

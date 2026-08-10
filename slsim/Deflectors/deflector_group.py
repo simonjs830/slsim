@@ -5,6 +5,7 @@ from slsim.Deflectors.deflector import surface_brightness, Deflector
 from lenstronomy.LensModel.lens_model import LensModel
 from lenstronomy.LensModel.lens_model_extensions import LensModelExtensions
 
+
 class DeflectorGroup(object):
     """Class to handle sets of deflectors that are bundled together.
 
@@ -283,7 +284,9 @@ class DeflectorGroup(object):
         self._theta_e_infinity = theta_E_infinity
         return theta_E_infinity
 
-    def critical_curves_caustics_list(self, z_source, cosmo, kwargs_critical_curve_caustics=None):
+    def critical_curves_caustics_list(
+        self, z_source, cosmo, kwargs_critical_curve_caustics=None
+    ):
         """Returns list of critical curves and caustics for a source at
         `z_source`
 

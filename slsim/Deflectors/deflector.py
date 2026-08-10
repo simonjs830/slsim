@@ -316,6 +316,7 @@ class Deflector(object):
 
         return ra_crit_list, dec_crit_list, ra_caustic_list, dec_caustic_list
 
+
 def surface_brightness(ra, dec, lens_light_model_list, kwargs_lens_light_mag):
     """Surface brightness at position ra/dec.
 

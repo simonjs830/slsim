@@ -6,7 +6,16 @@ from slsim.Deflectors.MassLightConnection.velocity_dispersion import vel_disp_nf
 class NFW(MassBase):
     """Class of a NFW lens model."""
 
-    def __init__(self, light, halo_mass, concentration, e1=0, e2=0, vel_disp=None, truncation_radius=None):
+    def __init__(
+        self,
+        light,
+        halo_mass,
+        concentration,
+        e1=0,
+        e2=0,
+        vel_disp=None,
+        truncation_radius=None,
+    ):
         """
 
         :param light: light model (used for position of deflector and stellar mass density profile)
@@ -79,8 +88,10 @@ class NFW(MassBase):
             }
         ]
         if self._truncation_radius != None:
-            kwargs_lens_mass[0]["r_trunc"] = lens_cosmo.phys2arcsec_lens(self._truncation_radius / 1000) #function converts mpc to arcsec
-            print(f"r_trunc = {kwargs_lens_mass[0]['r_trunc']}") #TODO
+            kwargs_lens_mass[0]["r_trunc"] = lens_cosmo.phys2arcsec_lens(
+                self._truncation_radius / 1000
+            )  # function converts mpc to arcsec
+            print(f"r_trunc = {kwargs_lens_mass[0]['r_trunc']}")  # TODO
 
         if _spherical is False:
             e1_mass_lenstronomy, e2_mass_lenstronomy = ellipticity_slsim_to_lenstronomy(

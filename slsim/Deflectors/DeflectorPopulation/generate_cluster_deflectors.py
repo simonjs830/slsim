@@ -1,6 +1,5 @@
-"""
-The GeneratedDeflector class implements the analytic subhalo model from Han et al. (2016)
-Some other choices are made following Abe et al. (2025)
+"""The GeneratedDeflector class implements the analytic subhalo model from Han
+et al. (2016) Some other choices are made following Abe et al. (2025)
 
 Model summary:
 
@@ -36,14 +35,19 @@ from colossus.halo import profile_nfw
 from colossus.halo import concentration
 
 import numpy as np
-#from scipy.stats import truncnorm
 
-from slsim.Deflectors.MassLightConnection.galaxy_population import gals_init, stellarmass_halomass
+# from scipy.stats import truncnorm
+
+from slsim.Deflectors.MassLightConnection.galaxy_population import (
+    gals_init,
+    stellarmass_halomass,
+)
 from slsim.Deflectors.deflector_util import set_colossus_cosmo
 
 from slsim.Deflectors.deflector_group import DeflectorGroup
 
 from slsim.Sources.SourcePopulation.galaxies import galaxy_projected_eccentricity
+
 
 class GeneratedDeflector:
     def __init__(self, M200h, z, cosmo):
@@ -56,27 +60,32 @@ class GeneratedDeflector:
         set_colossus_cosmo(cosmo)
 
         c = concentration.concentration(M200h, "200c", z, model="diemer19")
-        c = np.random.lognormal(mean = np.log(c), sigma = 0.33) #concentration distribution 0.16 dex
-        self.p_nfw = profile_nfw.NFWProfile(M = M200h, c = c, z = z, mdef = "200c")
+        c = np.random.lognormal(
+            mean=np.log(c), sigma=0.33
+        )  # concentration distribution 0.16 dex
+        self.p_nfw = profile_nfw.NFWProfile(M=M200h, c=c, z=z, mdef="200c")
 
-        self.M200h = M200h #solar masses / h
-        self.R200h = self.p_nfw.RDelta(z, "200c") #kpc / h
+        self.M200h = M200h  # solar masses / h
+        self.R200h = self.p_nfw.RDelta(z, "200c")  # kpc / h
 
         self.z = z
         self.cosmo = cosmo
 
-        #fraction of red galaxies, function of redshift and mass
-        f_red_200 = 0.68 * (self.M200h / self.cosmo.h / (6 * 10 ** 14)) ** -0.10 * ((1 + self.z) / (1 + 0.46)) ** -0.65
-        self.f_red_200 = np.random.normal(loc=f_red_200, scale=0.14*f_red_200)
-    
+        # fraction of red galaxies, function of redshift and mass
+        f_red_200 = (
+            0.68
+            * (self.M200h / self.cosmo.h / (6 * 10**14)) ** -0.10
+            * ((1 + self.z) / (1 + 0.46)) ** -0.65
+        )
+        self.f_red_200 = np.random.normal(loc=f_red_200, scale=0.14 * f_red_200)
+
     def accreted_subhalo_density_pdf(self, m_acc_h):
-        """
-        Returns accreted subhalo dN / dlnm
+        """Returns accreted subhalo dN / dlnm.
 
         :param m_acc: subhalo accretion mass [solar masses / h]
         """
 
-        #Han et al. 2018, table 1
+        # Han et al. 2018, table 1
         a1 = 0.11
         al1 = 0.95
         a2 = 0.20
@@ -86,7 +95,7 @@ class GeneratedDeflector:
 
         mu = m_acc_h / self.M200h
 
-        return (a1 * mu ** -al1 + a2 * mu ** -al2) * np.exp(-b * mu ** beta)
+        return (a1 * mu**-al1 + a2 * mu**-al2) * np.exp(-b * mu**beta)
 
     def unevolved_spatial_distribution_pdf(self, r):
         """
@@ -99,77 +108,93 @@ class GeneratedDeflector:
         return self.p_nfw.density(r) / self.M200h
 
     def evolved_subhalo_mass_fraction_of_accretion(self, r):
-        """
-        Returns m_evolved / m_acc
+        """Returns m_evolved / m_acc.
 
         :param r: distance to halo center [kpc / h]
         """
 
-        M = self.M200h / 10 ** 10
-        
-        mustar = 0.5*M**-0.03  #stripping function amplitude
-        beta = 1.7*M**-0.04  #stripping function slope
-        sigma = 1.1 #log scatter of m / m_acc
-        fs = 0.55 #fraction of survived subhaloes
+        M = self.M200h / 10**10
 
-        #updated from han 2024
-        #THIS IS WORSE
-        #mustar = 0.48
-        #beta = 1.12
-        #sigma = 0.99
+        mustar = 0.5 * M**-0.03  # stripping function amplitude
+        beta = 1.7 * M**-0.04  # stripping function slope
+        sigma = 1.1  # log scatter of m / m_acc
+        fs = 0.55  # fraction of survived subhaloes
 
-        mubar = mustar * (r / self.R200h) ** beta #average evolved mass fraction
-        mu = np.random.lognormal(mean = np.log(mubar), sigma = sigma) #with scatter
-        '''mu = np.exp(truncnorm.rvs(
+        # updated from han 2024
+        # THIS IS WORSE
+        # mustar = 0.48
+        # beta = 1.12
+        # sigma = 0.99
+
+        mubar = mustar * (r / self.R200h) ** beta  # average evolved mass fraction
+        mu = np.random.lognormal(mean=np.log(mubar), sigma=sigma)  # with scatter
+        """Mu = np.exp(truncnorm.rvs(
+
             a=-np.inf,
             b=(0 - np.log(mubar)) / sigma,
             loc=np.log(mubar),
             scale=sigma,
             size=len(r)
-        ))'''
-        #truncated normal is actually worse than non-truncated
+        ))
+        """
+        # truncated normal is actually worse than non-truncated
 
-        return np.where(np.random.rand(*r.shape) < fs, mu, 0) #0 mass when stripped
+        return np.where(np.random.rand(*r.shape) < fs, mu, 0)  # 0 mass when stripped
 
     def generate_subhalos(self, m_acc_min, m_acc_max):
-        """
-        Randomly samples subhalos from m_acc_min to m_acc_max (solar masses / h)
+        """Randomly samples subhalos from m_acc_min to m_acc_max (solar masses
+        / h)
 
-        Returns list of tuples (accretion mass [solar masses / h], evolved mass [solar masses / h], distance to center [kpc / h])
+        Returns list of tuples (accretion mass [solar masses / h],
+        evolved mass [solar masses / h], distance to center [kpc / h])
         """
 
         m_acc = np.logspace(np.log10(m_acc_min), np.log10(m_acc_max), num=1000, base=10)
         r = self.R200h * np.linspace(0.001, 1, 1000)
 
-        d3r = 4/3 * np.pi * (r[1:] ** 3 - r[:-1] ** 3)
+        d3r = 4 / 3 * np.pi * (r[1:] ** 3 - r[:-1] ** 3)
 
-        #probability that the accreted subhalo ended up at each radius (traces halo density profile)
-        spacial_distribution_multiplier = self.unevolved_spatial_distribution_pdf(r[:-1]) * d3r
+        # probability that the accreted subhalo ended up at each radius (traces halo density profile)
+        spacial_distribution_multiplier = (
+            self.unevolved_spatial_distribution_pdf(r[:-1]) * d3r
+        )
 
         dlnm = np.log(m_acc[1]) - np.log(m_acc[0])
 
-        #mass_acc, mass_evolved, radius 
+        # mass_acc, mass_evolved, radius
         subhalos = []
-        
+
         for m in m_acc:
-            #expected number of accreted subhalos of this mass
+            # expected number of accreted subhalos of this mass
             accreted_subhalo_expected = self.accreted_subhalo_density_pdf(m) * dlnm
 
-            #function of radius, expected number of subhalos with this accretion mass at this radius
-            probability_present = spacial_distribution_multiplier * accreted_subhalo_expected
+            # function of radius, expected number of subhalos with this accretion mass at this radius
+            probability_present = (
+                spacial_distribution_multiplier * accreted_subhalo_expected
+            )
 
-            #poisson unnecessary
-            present_r_indices = np.where(np.random.rand(*probability_present.shape) < probability_present)[0]
+            # poisson unnecessary
+            present_r_indices = np.where(
+                np.random.rand(*probability_present.shape) < probability_present
+            )[0]
 
             mass_acc = [m] * len(present_r_indices)
-            mass_evolved = m * self.evolved_subhalo_mass_fraction_of_accretion(r[present_r_indices])
+            mass_evolved = m * self.evolved_subhalo_mass_fraction_of_accretion(
+                r[present_r_indices]
+            )
             radius = r[present_r_indices]
 
             subhalos += list(zip(mass_acc, mass_evolved, radius))
 
         return subhalos
 
-    def get_deflector_data(self, red_galaxies, blue_galaxies, min_subhalo_accretion_mass = None, crop_subhalo_dist = 1000):
+    def get_deflector_data(
+        self,
+        red_galaxies,
+        blue_galaxies,
+        min_subhalo_accretion_mass=None,
+        crop_subhalo_dist=1000,
+    ):
         """
         :param galaxy_list: list of galaxies to assign as deflectors
         :param min_subhalo_accretion_mass: min subhalo accretion mass [solar masses / h]
@@ -179,10 +204,12 @@ class GeneratedDeflector:
         """
 
         if min_subhalo_accretion_mass == None:
-            min_subhalo_accretion_mass = 10 ** -3 * self.M200h
+            min_subhalo_accretion_mass = 10**-3 * self.M200h
 
         paramc, params = gals_init()
-        angular_diameter_dist = self.cosmo.angular_diameter_distance(self.z).to_value("kpc") #distance corresponding to 1 radian
+        angular_diameter_dist = self.cosmo.angular_diameter_distance(self.z).to_value(
+            "kpc"
+        )  # distance corresponding to 1 radian
 
         mean_position_angle = np.random.rand() * 2 * np.pi
 
@@ -194,68 +221,114 @@ class GeneratedDeflector:
         log_skypy_red_galaxy_masses = np.log10(red_galaxies["stellar_mass"])
         log_skypy_blue_galaxy_masses = np.log10(blue_galaxies["stellar_mass"])
 
-        halos = [(self.M200h, self.M200h, 0)] + self.generate_subhalos(min_subhalo_accretion_mass, self.M200h)
+        halos = [(self.M200h, self.M200h, 0)] + self.generate_subhalos(
+            min_subhalo_accretion_mass, self.M200h
+        )
         for subhalo_m_acc, subhalo_m_evolved, dist_to_center in halos:
-            #Mo/h, Mo/h, kpc/h
+            # Mo/h, Mo/h, kpc/h
 
-            #place randomly in 3d and cast to 2d
+            # place randomly in 3d and cast to 2d
             pos = np.random.normal(size=(3))
             pos /= np.linalg.norm(pos)
-            pos_2d = pos[:2] * dist_to_center / self.cosmo.h / angular_diameter_dist * 206265 #2d coordinate in arcsecs
+            pos_2d = (
+                pos[:2] * dist_to_center / self.cosmo.h / angular_diameter_dist * 206265
+            )  # 2d coordinate in arcsecs
 
-            if not ((-crop_subhalo_dist < pos_2d[0] < crop_subhalo_dist) and (-crop_subhalo_dist < pos_2d[1] < crop_subhalo_dist)):
+            if not (
+                (-crop_subhalo_dist < pos_2d[0] < crop_subhalo_dist)
+                and (-crop_subhalo_dist < pos_2d[1] < crop_subhalo_dist)
+            ):
                 continue
 
-            #compute stellar mass from halo mass, use paramc if host halo, else params for SMHM relation
-            galaxy_mass = stellarmass_halomass(subhalo_m_acc, self.z, paramc if dist_to_center == 0 else params) #solar masses / h
-            galaxy_mass = np.random.lognormal(mean = np.log(galaxy_mass), sigma = 0.2) #scatter
+            # compute stellar mass from halo mass, use paramc if host halo, else params for SMHM relation
+            galaxy_mass = stellarmass_halomass(
+                subhalo_m_acc, self.z, paramc if dist_to_center == 0 else params
+            )  # solar masses / h
+            galaxy_mass = np.random.lognormal(
+                mean=np.log(galaxy_mass), sigma=0.2
+            )  # scatter
 
-            #TODO remove weighing, make skypy generate more massive galaxies
-            if np.random.rand() < self.fraction_red_galaxies(dist_to_center): #red
-                #Find sample galaxy with closest redshift and stellar mass                                #skypy returns in physical mass
-                #weigh redshift higher
-                closest_real_galaxy_index = np.argmin(np.hypot(5 * (red_galaxies["z"] - self.z), log_skypy_red_galaxy_masses - np.log10(galaxy_mass / self.cosmo.h)))
+            # TODO remove weighing, make skypy generate more massive galaxies
+            if np.random.rand() < self.fraction_red_galaxies(dist_to_center):  # red
+                # Find sample galaxy with closest redshift and stellar mass                                #skypy returns in physical mass
+                # weigh redshift higher
+                closest_real_galaxy_index = np.argmin(
+                    np.hypot(
+                        5 * (red_galaxies["z"] - self.z),
+                        log_skypy_red_galaxy_masses
+                        - np.log10(galaxy_mass / self.cosmo.h),
+                    )
+                )
 
                 light_dict = dict(red_galaxies[closest_real_galaxy_index])
-            else: #blue
-                #Find sample galaxy with closest redshift and stellar mass                                #skypy returns in physical mass
-                #weigh redshift higher
-                closest_real_galaxy_index = np.argmin(np.hypot(5 * (blue_galaxies["z"] - self.z), log_skypy_blue_galaxy_masses - np.log10(galaxy_mass / self.cosmo.h)))
+            else:  # blue
+                # Find sample galaxy with closest redshift and stellar mass                                #skypy returns in physical mass
+                # weigh redshift higher
+                closest_real_galaxy_index = np.argmin(
+                    np.hypot(
+                        5 * (blue_galaxies["z"] - self.z),
+                        log_skypy_blue_galaxy_masses
+                        - np.log10(galaxy_mass / self.cosmo.h),
+                    )
+                )
 
                 light_dict = dict(blue_galaxies[closest_real_galaxy_index])
-            
+
             del light_dict["z"]
             light_dict["extended_source_type"] = "hernquist"
 
-            #eccentricity
-            light_dict["e1"], light_dict["e2"] = galaxy_projected_eccentricity(light_dict["ellipticity"], np.random.normal(loc=mean_position_angle, scale=35.4 * np.pi / 180))
-        
-            if subhalo_m_evolved > 0:
-                #use accretion mass for concentration
-                c = concentration.concentration(subhalo_m_acc, "200c", self.z, model="diemer19")
-                c = np.random.lognormal(mean = np.log(c), sigma = 0.33) #concentration distribution 0.16 dex
+            # eccentricity
+            light_dict["e1"], light_dict["e2"] = galaxy_projected_eccentricity(
+                light_dict["ellipticity"],
+                np.random.normal(loc=mean_position_angle, scale=35.4 * np.pi / 180),
+            )
 
-                #slsim wants physical masses, not / h
-                mass_dict = {"mass_type": "NFW_HERNQUIST", "halo_mass": subhalo_m_evolved / self.cosmo.h, "concentration": c, "e1": 0, "e2": 0}
-    
-                if dist_to_center != 0: #subhalo
-                    mass_dict["truncation_radius"] = 1.4 * (subhalo_m_evolved / self.cosmo.h / 10 ** 7) ** (1/3) * (dist_to_center / self.cosmo.h / 50) ** (2 / 3)
-            else: #subhalo is completely stripped
+            if subhalo_m_evolved > 0:
+                # use accretion mass for concentration
+                c = concentration.concentration(
+                    subhalo_m_acc, "200c", self.z, model="diemer19"
+                )
+                c = np.random.lognormal(
+                    mean=np.log(c), sigma=0.33
+                )  # concentration distribution 0.16 dex
+
+                # slsim wants physical masses, not / h
+                mass_dict = {
+                    "mass_type": "NFW_HERNQUIST",
+                    "halo_mass": subhalo_m_evolved / self.cosmo.h,
+                    "concentration": c,
+                    "e1": 0,
+                    "e2": 0,
+                }
+
+                if dist_to_center != 0:  # subhalo
+                    mass_dict["truncation_radius"] = (
+                        1.4
+                        * (subhalo_m_evolved / self.cosmo.h / 10**7) ** (1 / 3)
+                        * (dist_to_center / self.cosmo.h / 50) ** (2 / 3)
+                    )
+            else:  # subhalo is completely stripped
                 mass_dict = {"mass_type": "HERNQUIST"}
-                
+
             light_dicts.append(light_dict)
             mass_dicts.append(mass_dict)
             center_x_list.append(pos_2d[0])
             center_y_list.append(pos_2d[1])
-    
+
         return {
             "kwargs_mass_list": mass_dicts,
             "kwargs_light_list": light_dicts,
             "center_x_deflector_list": center_x_list,
-            "center_y_deflector_list": center_y_list
+            "center_y_deflector_list": center_y_list,
         }
 
-    def get_deflector(self, red_galaxies, blue_galaxies, min_subhalo_accretion_mass = None, crop_subhalo_dist = 1000):
+    def get_deflector(
+        self,
+        red_galaxies,
+        blue_galaxies,
+        min_subhalo_accretion_mass=None,
+        crop_subhalo_dist=1000,
+    ):
         """
         :param galaxy_list: list of galaxies to assign as deflectors
         :param min_subhalo_accretion_mass: min subhalo accretion mass [solar masses / h]
@@ -263,28 +336,37 @@ class GeneratedDeflector:
 
         returns DeflectorGroup
         """
-        
-        return DeflectorGroup(self.z, **self.get_deflector_data(red_galaxies, blue_galaxies, min_subhalo_accretion_mass, crop_subhalo_dist))
+
+        return DeflectorGroup(
+            self.z,
+            **self.get_deflector_data(
+                red_galaxies,
+                blue_galaxies,
+                min_subhalo_accretion_mass,
+                crop_subhalo_dist,
+            )
+        )
 
     def fraction_red_galaxies(self, r):
-        """
-        Returns probability that a galaxy is red at a distance r (kpc / h)
+        """Returns probability that a galaxy is red at a distance r (kpc / h)
 
-        Red and blue galaxy densities in the cluster are modeled as NFW profiles with different concentrations
+        Red and blue galaxy densities in the cluster are modeled as NFW
+        profiles with different concentrations
 
-        f_red_200 is calculated earlier as a function of mass and redshift
+        f_red_200 is calculated earlier as a function of mass and
+        redshift
 
         Data taken from Hennig et al. (2017)
         """
 
-        #From f_red_200, we need to calculate the NFW densities describing the galaxy distributions from their concentrations
+        # From f_red_200, we need to calculate the NFW densities describing the galaxy distributions from their concentrations
 
         c_red = 5.37
         c_blue = 1.38
 
         def nfw(x, c):
             y = c * x
-            return 1 / (y * (1 + y)**2)
+            return 1 / (y * (1 + y) ** 2)
 
         def enclosed(y):
             return np.log(1 + y) - y / (1 + y)

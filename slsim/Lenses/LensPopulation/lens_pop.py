@@ -161,7 +161,7 @@ class LensPop(LensedPopulationBase):
         n = 0
         while True:
             n += 1
-            
+
             # draw random deflector
             _deflector = self._lens_galaxies.draw_deflector()
 
