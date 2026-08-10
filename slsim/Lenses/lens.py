@@ -245,6 +245,7 @@ class Lens(LensedSystemBase):
         self,
         min_image_separation=0,
         max_image_separation=10,
+        min_num_of_images=2,
         mag_arc_limit=None,
         second_brightest_image_cut=None,
         snr_limit=None,
@@ -254,6 +255,7 @@ class Lens(LensedSystemBase):
 
         :param min_image_separation: minimum image separation
         :param max_image_separation: maximum image separation
+        :param min_num_of_images: minimum number of images
         :param mag_arc_limit: dictionary with key of bands and values of
             magnitude limits of integrated lensed arc
         :type mag_arc_limit: dict with key of bands and values of
@@ -273,6 +275,7 @@ class Lens(LensedSystemBase):
             validity_results[index] = self._validity_test(
                 min_image_separation=min_image_separation,
                 max_image_separation=max_image_separation,
+                min_num_of_images=min_num_of_images,
                 mag_arc_limit=mag_arc_limit,
                 second_brightest_image_cut=second_brightest_image_cut,
                 snr_limit=snr_limit,
@@ -287,6 +290,7 @@ class Lens(LensedSystemBase):
         self,
         min_image_separation=0,
         max_image_separation=10,
+        min_num_of_images=2,
         mag_arc_limit=None,
         second_brightest_image_cut=None,
         snr_limit=None,
@@ -297,6 +301,7 @@ class Lens(LensedSystemBase):
 
         :param min_image_separation: minimum image separation
         :param max_image_separation: maximum image separation
+        :param min_num_of_images: minimum number of images
         :param mag_arc_limit: dictionary with key of bands and values of
             magnitude limits of integrated lensed arc
         :type mag_arc_limit: dict with key of bands and values of
@@ -336,9 +341,9 @@ class Lens(LensedSystemBase):
         if np.sum((center_lens - center_source) ** 2) > einstein_radius**2 * 2:
             return False
 
-        # Criteria 4: The lensing configuration must produce at least two SL images.
+        # Criteria 4: The lensing configuration must produce at least min_num_of_images SL images.
         image_positions = self.point_source_image_positions()[source_index]
-        if len(image_positions[0]) < 2:
+        if len(image_positions[0]) < min_num_of_images:
             return False
 
         # Criteria 5: The maximum separation between any two image positions must be

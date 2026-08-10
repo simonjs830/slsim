@@ -7,13 +7,9 @@ from astropy.units import Quantity
 from slsim.Sources.SourcePopulation.source_pop_base import SourcePopBase
 from slsim.LOS.los_pop import LOSPop
 from slsim.Deflectors.DeflectorPopulation.deflectors_base import DeflectorsBase
-<<<<<<< HEAD:slsim/Lenses/lens_pop.py
-from slsim.Lenses.lensed_population_base import LensedPopulationBase
+from slsim.Lenses.LensPopulation.lensed_population_base import LensedPopulationBase
 from lenstronomy.LensModel.lens_model_extensions import LensModelExtensions
 from matplotlib.path import Path
-=======
-from slsim.Lenses.LensPopulation.lensed_population_base import LensedPopulationBase
->>>>>>> 2aa1160ad3ac288dd403dff83abe9f120fdf741c:slsim/Lenses/LensPopulation/lens_pop.py
 
 from tqdm import tqdm
 
@@ -164,6 +160,8 @@ class LensPop(LensedPopulationBase):
 
         n = 0
         while True:
+            n += 1
+            
             # draw random deflector
             _deflector = self._lens_galaxies.draw_deflector()
 
@@ -239,8 +237,6 @@ class LensPop(LensedPopulationBase):
                         multi_plane="Source",
                         create_field_galaxies=True,
                     )
-
-            n += 1
 
     def _draw_source(self, mag_arc_limit=None, magnification_limit=2, **kwargs):
         """Draw from source population considering some additional constraints
