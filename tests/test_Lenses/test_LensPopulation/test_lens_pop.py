@@ -293,7 +293,9 @@ def test_cluster_lens_pop_instance_multi_source():
         "max_image_separation": 100.0,
     }
 
-    pes_lens_class = lenspop.select_lens_at_random_multi_source(source_area=sky_area, **kwargs_lens_cut_plot)
+    pes_lens_class = lenspop.select_lens_at_random_multi_source(
+        source_area=sky_area, **kwargs_lens_cut_plot
+    )
     assert isinstance(pes_lens_class, Lens)
 
 
