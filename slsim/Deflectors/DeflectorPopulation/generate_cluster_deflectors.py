@@ -191,7 +191,7 @@ class GeneratedDeflector:
         returns kwargs_mass_list, kwargs_light_list, center_x_deflector_list, center_y_deflector_list to be passed into DeflectorGroup
         """
 
-        if min_subhalo_accretion_mass == None:
+        if min_subhalo_accretion_mass is None:
             min_subhalo_accretion_mass = 10**-3 * self.M200h
 
         paramc, params = gals_init()

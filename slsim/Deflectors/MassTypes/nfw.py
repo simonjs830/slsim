@@ -67,7 +67,7 @@ class NFW(MassBase):
         else:
             _spherical = False
 
-        if self._truncation_radius != None:
+        if self._truncation_radius is not None:
             lens_mass_model_list = ["TNFW"]
         elif _spherical is True:
             lens_mass_model_list = ["NFW"]
@@ -87,7 +87,7 @@ class NFW(MassBase):
                 "center_y": center_y,
             }
         ]
-        if self._truncation_radius != None:
+        if self._truncation_radius is not None:
             kwargs_lens_mass[0]["r_trunc"] = lens_cosmo.phys2arcsec_lens(
                 self._truncation_radius / 1000
             )  # function converts mpc to arcsec

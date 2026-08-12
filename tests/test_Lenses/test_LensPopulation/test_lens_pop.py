@@ -257,6 +257,8 @@ def test_cluster_lens_pop_instance():
 
 
 def test_cluster_lens_pop_instance_multi_source():
+    sky_area = Quantity(value=0.05, unit="deg2")
+    
     #one of the other tests adds a column to the galaxies table, which causes a bug when creating a Hernquist source
     _galaxy_simulation_pipeline = pipelines.SkyPyPipeline(
         skypy_config=None,
@@ -265,7 +267,6 @@ def test_cluster_lens_pop_instance_multi_source():
     )
 
     cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
-    sky_area = Quantity(value=100**2, unit="arcsec2")
 
     kwargs_source_cut = {"band": "g", "band_max": 26, "z_min": 0.21, "z_max": 5.0}
 
@@ -301,7 +302,7 @@ def test_cluster_lens_pop_instance_multi_source():
     }
 
     pes_lens_class = lenspop.select_lens_at_random_multi_source(
-        source_area=sky_area, **kwargs_lens_cut_plot
+        source_area=Quantity(40**2, "arcsec2"), **kwargs_lens_cut_plot
     )
     assert isinstance(pes_lens_class, Lens)
 
