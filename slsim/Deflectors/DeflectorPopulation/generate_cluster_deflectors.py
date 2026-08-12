@@ -143,7 +143,7 @@ class GeneratedDeflector:
         d3r = 4 / 3 * np.pi * (r[1:] ** 3 - r[:-1] ** 3)
 
         # probability that the accreted subhalo ended up at each radius (traces halo density profile)
-        spacial_distribution_multiplier = (
+        spatial_distribution_multiplier = (
             self.unevolved_spatial_distribution_pdf(r[:-1]) * d3r
         )
 
@@ -158,7 +158,7 @@ class GeneratedDeflector:
 
             # function of radius, expected number of subhalos with this accretion mass at this radius
             probability_present = (
-                spacial_distribution_multiplier * accreted_subhalo_expected
+                spatial_distribution_multiplier * accreted_subhalo_expected
             )
 
             # poisson unnecessary
@@ -354,9 +354,11 @@ class GeneratedDeflector:
 
         def nfw(x, c):
             y = c * x
+            y = max(y, .0001)
             return 1 / (y * (1 + y) ** 2)
 
         def enclosed(y):
+            y = max(y, .0001)
             return np.log(1 + y) - y / (1 + y)
 
         I_red = enclosed(c_red) / c_red**3
