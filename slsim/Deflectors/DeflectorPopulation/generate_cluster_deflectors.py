@@ -374,7 +374,19 @@ class GeneratedDeflector:
 
 
 class GeneratedDeflectorPopulation:
-    def __init__(self, Mmin, Mmax, zmin, zmax, red_galaxies, blue_galaxies, sky_area, cosmo, crop_subhalo_dist=100, min_subhalo_accretion_mass=None):
+    def __init__(
+        self,
+        Mmin,
+        Mmax,
+        zmin,
+        zmax,
+        red_galaxies,
+        blue_galaxies,
+        sky_area,
+        cosmo,
+        crop_subhalo_dist=100,
+        min_subhalo_accretion_mass=None,
+    ):
         """
         :param Mmin: Minimum host halo mass (solar masses / h)
         :param Mmax: Maximum host halo mass (solar masses / h)
@@ -407,26 +419,37 @@ class GeneratedDeflectorPopulation:
         MM_h = np.logspace(np.log10(Mmin), np.log10(Mmax), 1000)
         dlnm = np.log(MM_h[1]) - np.log(MM_h[0])
 
-        dz = .001
+        dz = 0.001
         for z in np.arange(zmin, zmax, dz):
-            counts = np.random.poisson(dNhalodzdlnM_lens(MM_h, z, cosmo_col, mdef="200c", model="tinker08") * sky_area.to_value("deg2") * dlnm * dz)
+            counts = np.random.poisson(
+                dNhalodzdlnM_lens(MM_h, z, cosmo_col, mdef="200c", model="tinker08")
+                * sky_area.to_value("deg2")
+                * dlnm
+                * dz
+            )
 
             for m, count in zip(MM_h, counts):
                 if count > 0:
                     self.deflectors += [(m, z)] * count
 
     def draw_deflector(self):
-        """
-        Draw a random deflector. Returns DeflectorGroup object
+        """Draw a random deflector.
+
+        Returns DeflectorGroup object
         """
 
-        (M, z) = random.choice(self.deflectors)
-        
-        #print(f"Drew M {np.log10(M):.4f}/h z {z:.4f}")
-        
+        M, z = random.choice(self.deflectors)
+
+        # print(f"Drew M {np.log10(M):.4f}/h z {z:.4f}")
+
         generated_deflector = GeneratedDeflector(M, z, self.cosmo)
-        
-        return generated_deflector.get_deflector(self.red_galaxies, self.blue_galaxies, crop_subhalo_dist=self.crop_subhalo_dist, min_subhalo_accretion_mass=self.min_subhalo_accretion_mass)
+
+        return generated_deflector.get_deflector(
+            self.red_galaxies,
+            self.blue_galaxies,
+            crop_subhalo_dist=self.crop_subhalo_dist,
+            min_subhalo_accretion_mass=self.min_subhalo_accretion_mass,
+        )
 
     def deflector_number(self):
         return len(self.deflectors)

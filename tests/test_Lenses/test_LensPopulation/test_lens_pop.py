@@ -13,7 +13,9 @@ from slsim.Deflectors.DeflectorPopulation.compound_lens_halos_galaxies import (
     CompoundLensHalosGalaxies,
 )
 from slsim.Deflectors.DeflectorPopulation.cluster_deflectors import ClusterDeflectors
-from slsim.Deflectors.DeflectorPopulation.generate_cluster_deflectors import GeneratedDeflectorPopulation
+from slsim.Deflectors.DeflectorPopulation.generate_cluster_deflectors import (
+    GeneratedDeflectorPopulation,
+)
 
 from slsim.Sources.SourcePopulation.galaxies import Galaxies
 from slsim.Sources.SourceCatalogues.SupernovaeCatalog.supernovae_sample import (
@@ -268,7 +270,16 @@ def test_cluster_lens_pop_instance_multi_source():
         catalog_type="skypy",
     )
 
-    deflectors = GeneratedDeflectorPopulation(10 ** 14.5, 10 ** 15, 0.3, 0.4, galaxy_simulation_pipeline.red_galaxies, galaxy_simulation_pipeline.blue_galaxies, Quantity(100, "deg2"), cosmo)
+    deflectors = GeneratedDeflectorPopulation(
+        10**14.5,
+        10**15,
+        0.3,
+        0.4,
+        galaxy_simulation_pipeline.red_galaxies,
+        galaxy_simulation_pipeline.blue_galaxies,
+        Quantity(100, "deg2"),
+        cosmo,
+    )
 
     lenspop = LensPop(
         deflector_population=deflectors,
@@ -284,6 +295,7 @@ def test_cluster_lens_pop_instance_multi_source():
 
     pes_lens_class = lenspop.select_lens_at_random_multi_source(source_area=sky_area, **kwargs_lens_cut_plot)
     assert isinstance(pes_lens_class, Lens)
+
 
 def test_galaxies_lens_pop_instance():
     cosmo = FlatLambdaCDM(H0=70, Om0=0.3)

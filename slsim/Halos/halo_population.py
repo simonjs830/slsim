@@ -101,8 +101,7 @@ def dNhalodzdlnM_lens(M, z, cosmo_col, **massfunction_kwargs):
     dvoldzdO = calc_vol(z, cosmo_col)
     hhh = (cosmo_col.H0 / 100.0) ** 3
     mfunc_so = (
-        mass_function.massFunction(M, z, q_out="dndlnM", **massfunction_params)
-        * hhh
+        mass_function.massFunction(M, z, q_out="dndlnM", **massfunction_params) * hhh
     )
     return dvoldzdO * mfunc_so
 

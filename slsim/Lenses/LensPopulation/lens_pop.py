@@ -170,7 +170,8 @@ class LensPop(LensedPopulationBase):
                 10,
                 self.cosmo,
                 {
-                    "compute_window": np.sqrt(source_area.to_value("arcsec2") / np.pi) * 2,
+                    "compute_window": np.sqrt(source_area.to_value("arcsec2") / np.pi)
+                    * 2,
                     "grid_scale": 0.5,
                 },
             )
