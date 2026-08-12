@@ -13,7 +13,9 @@ from slsim.Deflectors.DeflectorPopulation.compound_lens_halos_galaxies import (
     CompoundLensHalosGalaxies,
 )
 from slsim.Deflectors.DeflectorPopulation.cluster_deflectors import ClusterDeflectors
-from slsim.Deflectors.DeflectorPopulation.generate_cluster_deflectors import GeneratedDeflectorPopulation
+from slsim.Deflectors.DeflectorPopulation.generate_cluster_deflectors import (
+    GeneratedDeflectorPopulation,
+)
 
 from slsim.Sources.SourcePopulation.galaxies import Galaxies
 from slsim.Sources.SourceCatalogues.SupernovaeCatalog.supernovae_sample import (
@@ -268,7 +270,16 @@ def test_cluster_lens_pop_instance_multi_source():
         catalog_type="skypy",
     )
 
-    deflectors = GeneratedDeflectorPopulation(10 ** 14.5, 10 ** 15, 0.3, 0.4, galaxy_simulation_pipeline.red_galaxies, galaxy_simulation_pipeline.blue_galaxies, Quantity(100, "deg2"), cosmo)
+    deflectors = GeneratedDeflectorPopulation(
+        10**14.5,
+        10**15,
+        0.3,
+        0.4,
+        galaxy_simulation_pipeline.red_galaxies,
+        galaxy_simulation_pipeline.blue_galaxies,
+        Quantity(100, "deg2"),
+        cosmo,
+    )
 
     lenspop = LensPop(
         deflector_population=deflectors,
@@ -282,13 +293,16 @@ def test_cluster_lens_pop_instance_multi_source():
         "max_image_separation": 100.0,
     }
 
-    pes_lens_class = lenspop.select_lens_at_random_multi_source(source_area=sky_area, **kwargs_lens_cut_plot)
+    pes_lens_class = lenspop.select_lens_at_random_multi_source(
+        source_area=sky_area, **kwargs_lens_cut_plot
+    )
 
     assert pes_lens_class.deflector.deflector_type == "group"
     kwargs_model, kwargs_params = pes_lens_class.lenstronomy_kwargs(band="g")
     assert len(kwargs_model["lens_model_list"]) >= 3  # halo, 1>= subhalo, LoS
     assert len(kwargs_model["lens_light_model_list"]) >= 1  # 1>= member galaxy
     assert pes_lens_class.deflector_velocity_dispersion() > 100
+
 
 def test_galaxies_lens_pop_instance():
     cosmo = FlatLambdaCDM(H0=70, Om0=0.3)

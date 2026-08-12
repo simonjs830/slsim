@@ -198,11 +198,10 @@ def set_colossus_cosmo(cosmo):
 
 
 def critical_curves_caustics_list(
-        deflector, z_source, cosmo, kwargs_critical_curve_caustics=None
-    ):
-    """Returns list of critical curves and caustics for a source at
-    `z_source`
-    
+    deflector, z_source, cosmo, kwargs_critical_curve_caustics=None
+):
+    """Returns list of critical curves and caustics for a source at `z_source`
+
     :param deflector: `DeflectorGroup` or `Deflector` object
     :param z_source: redshift at which to compute curves
     :param cosmo: astropy.cosmology instance
