@@ -48,6 +48,10 @@ from slsim.Deflectors.deflector_group import DeflectorGroup
 
 from slsim.Sources.SourcePopulation.galaxies import galaxy_projected_eccentricity
 
+from slsim.Halos.halo_population import dNhalodzdlnM_lens
+
+import random
+
 
 class GeneratedDeflector:
     def __init__(self, M200h, z, cosmo):
@@ -120,24 +124,8 @@ class GeneratedDeflector:
         sigma = 1.1  # log scatter of m / m_acc
         fs = 0.55  # fraction of survived subhaloes
 
-        # updated from han 2024
-        # THIS IS WORSE
-        # mustar = 0.48
-        # beta = 1.12
-        # sigma = 0.99
-
         mubar = mustar * (r / self.R200h) ** beta  # average evolved mass fraction
         mu = np.random.lognormal(mean=np.log(mubar), sigma=sigma)  # with scatter
-        """Mu = np.exp(truncnorm.rvs(
-
-            a=-np.inf,
-            b=(0 - np.log(mubar)) / sigma,
-            loc=np.log(mubar),
-            scale=sigma,
-            size=len(r)
-        ))
-        """
-        # truncated normal is actually worse than non-truncated
 
         return np.where(np.random.rand(*r.shape) < fs, mu, 0)  # 0 mass when stripped
 
@@ -381,3 +369,62 @@ class GeneratedDeflector:
         rho_blue = A_blue * nfw(r / self.R200h, c_blue)
 
         return rho_red / (rho_red + rho_blue)
+
+
+class GeneratedDeflectorPopulation:
+    def __init__(self, Mmin, Mmax, zmin, zmax, red_galaxies, blue_galaxies, sky_area, cosmo, crop_subhalo_dist=100, min_subhalo_accretion_mass=None):
+        """
+        :param Mmin: Minimum host halo mass (solar masses / h)
+        :param Mmax: Maximum host halo mass (solar masses / h)
+        :param zmin: min redshift
+        :param zmax: max redshift
+        :param red_galaxies: list of red galaxies from skypy
+        :param blue_galaxies: list of blue galaxies from skypy
+        :param sky_area: sky area over which to draw deflectors, set very high to get a realistic population
+        :type sky_area: astropy.Quantity
+        :param cosmo: astropy cosmology instance
+        :param crop_subhalo_dist: maximum distance in arcsecs from the center that satellites will be generated
+        :param min_subhalo_accretion_mass: minimum mass of accreted subhalos to sample (solar masses / h). Default 10^-3 M_hh, but can be set explicitly if generating smaller groups
+        """
+
+        self.Mmin = Mmin
+        self.Mmax = Mmax
+        self.zmin = zmin
+        self.zmax = zmax
+        self.red_galaxies = red_galaxies
+        self.blue_galaxies = blue_galaxies
+        self.crop_subhalo_dist = crop_subhalo_dist
+        self.min_subhalo_accretion_mass = min_subhalo_accretion_mass
+        self.cosmo = cosmo
+        self.sky_area = sky_area
+
+        self.deflectors = []
+
+        cosmo_col = set_colossus_cosmo(cosmo)
+
+        MM_h = np.logspace(np.log10(Mmin), np.log10(Mmax), 1000)
+        dlnm = np.log(MM_h[1]) - np.log(MM_h[0])
+
+        dz = .001
+        for z in np.arange(zmin, zmax, dz):
+            counts = np.random.poisson(dNhalodzdlnM_lens(MM_h, z, cosmo_col, mdef="200c", model="tinker08") * sky_area.to_value("deg2") * dlnm * dz)
+
+            for m, count in zip(MM_h, counts):
+                if count > 0:
+                    self.deflectors += [(m, z)] * count
+
+    def draw_deflector(self):
+        """
+        Draw a random deflector. Returns DeflectorGroup object
+        """
+
+        (M, z) = random.choice(self.deflectors)
+        
+        #print(f"Drew M {np.log10(M):.4f}/h z {z:.4f}")
+        
+        generated_deflector = GeneratedDeflector(M, z, self.cosmo)
+        
+        return generated_deflector.get_deflector(self.red_galaxies, self.blue_galaxies, crop_subhalo_dist=self.crop_subhalo_dist, min_subhalo_accretion_mass=self.min_subhalo_accretion_mass)
+
+    def deflector_number(self):
+        return len(self.deflectors)

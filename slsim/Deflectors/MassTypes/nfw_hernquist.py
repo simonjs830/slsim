@@ -31,7 +31,7 @@ class NFWHernquist(MassBase):
         :param e2: halo eccentricity component 2
         :param vel_disp: velocity dispersion [km/s], optional as pre-computed value.
          ATTENTION: consistency is not checked with mass profile.
-        :param truncation_radius: if not None, uses the truncated nfw profile with this truncation radius
+        :param truncation_radius: if not None, uses the truncated NFW profile with this truncation radius
         """
         super().__init__(light=light, vel_disp=vel_disp)
         self._nfw = NFW(

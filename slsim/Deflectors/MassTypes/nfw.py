@@ -91,7 +91,6 @@ class NFW(MassBase):
             kwargs_lens_mass[0]["r_trunc"] = lens_cosmo.phys2arcsec_lens(
                 self._truncation_radius / 1000
             )  # function converts mpc to arcsec
-            print(f"r_trunc = {kwargs_lens_mass[0]['r_trunc']}")  # TODO
 
         if _spherical is False:
             e1_mass_lenstronomy, e2_mass_lenstronomy = ellipticity_slsim_to_lenstronomy(

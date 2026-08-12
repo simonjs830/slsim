@@ -8,9 +8,8 @@ from slsim.Sources.SourcePopulation.source_pop_base import SourcePopBase
 from slsim.LOS.los_pop import LOSPop
 from slsim.Deflectors.DeflectorPopulation.deflectors_base import DeflectorsBase
 from slsim.Lenses.LensPopulation.lensed_population_base import LensedPopulationBase
-from lenstronomy.LensModel.lens_model_extensions import LensModelExtensions
 from matplotlib.path import Path
-
+from slsim.Deflectors.deflector_util import critical_curves_caustics_list
 from tqdm import tqdm
 
 
@@ -166,18 +165,14 @@ class LensPop(LensedPopulationBase):
             _deflector = self._lens_galaxies.draw_deflector()
 
             ### compute caustics at high redshift to filter source galaxies for validity checking
-            _, _, ra_caustic_list, dec_caustic_list = (
-                _deflector.critical_curves_caustics_list(
-                    10,
-                    self.cosmo,
-                    {
-                        "compute_window": np.sqrt(
-                            source_area.to_value("arcsec2") / np.pi
-                        )
-                        * 2,
-                        "grid_scale": 0.5,
-                    },
-                )
+            _, _, ra_caustic_list, dec_caustic_list = critical_curves_caustics_list(
+                _deflector,
+                10,
+                self.cosmo,
+                {
+                    "compute_window": np.sqrt(source_area.to_value("arcsec2") / np.pi) * 2,
+                    "grid_scale": 0.5,
+                },
             )
 
             if len(ra_caustic_list) == 0:
