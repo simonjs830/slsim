@@ -257,13 +257,20 @@ def test_cluster_lens_pop_instance():
 
 
 def test_cluster_lens_pop_instance_multi_source():
+    #one of the other tests adds a column to the galaxies table, which causes a bug when creating a Hernquist source
+    _galaxy_simulation_pipeline = pipelines.SkyPyPipeline(
+        skypy_config=None,
+        sky_area=sky_area,
+        filters=None,
+    )
+
     cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
     sky_area = Quantity(value=100**2, unit="arcsec2")
 
     kwargs_source_cut = {"band": "g", "band_max": 26, "z_min": 0.21, "z_max": 5.0}
 
     source_galaxies = Galaxies(
-        galaxy_list=galaxy_simulation_pipeline.all_galaxies,
+        galaxy_list=_galaxy_simulation_pipeline.all_galaxies,
         kwargs_cut=kwargs_source_cut,
         cosmo=cosmo,
         sky_area=sky_area,
@@ -275,8 +282,8 @@ def test_cluster_lens_pop_instance_multi_source():
         10**15,
         0.3,
         0.4,
-        galaxy_simulation_pipeline.red_galaxies,
-        galaxy_simulation_pipeline.blue_galaxies,
+        _galaxy_simulation_pipeline.red_galaxies,
+        _galaxy_simulation_pipeline.blue_galaxies,
         Quantity(100, "deg2"),
         cosmo,
     )
