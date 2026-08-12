@@ -354,11 +354,11 @@ class GeneratedDeflector:
 
         def nfw(x, c):
             y = c * x
-            y = max(y, .0001)
+            y = max(y, 0.0001)
             return 1 / (y * (1 + y) ** 2)
 
         def enclosed(y):
-            y = max(y, .0001)
+            y = max(y, 0.0001)
             return np.log(1 + y) - y / (1 + y)
 
         I_red = enclosed(c_red) / c_red**3
