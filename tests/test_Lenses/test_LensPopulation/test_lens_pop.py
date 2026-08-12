@@ -257,9 +257,13 @@ def test_cluster_lens_pop_instance():
 
 
 def test_cluster_lens_pop_instance_multi_source():
+<<<<<<< HEAD
     sky_area = Quantity(value=0.05, unit="deg2")
     
     #one of the other tests adds a column to the galaxies table, which causes a bug when creating a Hernquist source
+=======
+    # one of the other tests adds a column to the galaxies table, which causes a bug when creating a Hernquist source
+>>>>>>> b2cccb790c96dda73fd56f199d464132d904c86b
     _galaxy_simulation_pipeline = pipelines.SkyPyPipeline(
         skypy_config=None,
         sky_area=sky_area,
